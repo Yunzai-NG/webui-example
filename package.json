@@ -1,0 +1,79 @@
+{
+  "name": "webui-example",
+  "version": "0.1.0",
+  "description": "Yunzai NG 面板插件示例：一言与时间两枚组件，一个页签，含 node 侧入口与可配置项",
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "author": "Yunzai-NG",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yunzai-NG/webui-example.git"
+  },
+  "homepage": "https://github.com/Yunzai-NG/webui-example",
+  "webuiPanel": {
+    "server": "server/index.js",
+    "style": "style.css",
+    "config": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "enum",
+          "title": "时间格式",
+          "description": "24 小时制或 12 小时制",
+          "default": "24h",
+          "enum": [
+            { "value": "24h", "label": "24 小时制" },
+            { "value": "12h", "label": "12 小时制" }
+          ],
+          "group": "时间组件",
+          "order": 10
+        },
+        "showSeconds": {
+          "type": "boolean",
+          "title": "显示秒",
+          "description": "关掉之后每分钟才重画一次，笔记本上省一点电",
+          "default": true,
+          "group": "时间组件",
+          "order": 20
+        },
+        "showWeekday": {
+          "type": "boolean",
+          "title": "显示星期",
+          "default": true,
+          "group": "时间组件",
+          "order": 30
+        },
+        "showLunar": {
+          "type": "boolean",
+          "title": "显示农历",
+          "description": "农历由包的 node 侧算出（依赖 lunar-typescript）。依赖没装上时这一项自动退回不显示，并在卡片上说明。",
+          "default": false,
+          "group": "时间组件",
+          "order": 40
+        },
+        "interval": {
+          "type": "number",
+          "title": "更新间隔（秒）",
+          "description": "时间组件自己的重画节拍。不走面板的全局节拍，因为时钟要的是每秒一次，而全局节拍是给采样用的。",
+          "default": 1,
+          "min": 1,
+          "max": 60,
+          "step": 1,
+          "group": "时间组件",
+          "order": 50
+        },
+        "hitokotoTypes": {
+          "type": "string",
+          "title": "一言类型",
+          "description": "取自 hitokoto.cn 的类型参数，多个用逗号分隔。留空为不限。a=动画 b=漫画 c=游戏 d=文学 i=诗词 k=哲学",
+          "default": "d,i,k",
+          "group": "一言组件",
+          "order": 60
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "lunar-typescript": "1.8.6"
+  }
+}

@@ -1,0 +1,74 @@
+/*
+ * 本包自带的样式表，由 package.json 的 `webuiPanel.style` 指出
+ *
+ * **每条选择器都会被面板限定到本包之后才注入**：下面的 `.track` 实际生效的是
+ * `[data-panel="panels/webui-example"] .track`。故类名不必加前缀，也改不到本包以外的东西。
+ *
+ * 两条例外要记住：
+ *   - `@keyframes` 原样保留，**动画名是全局的**，故此处加了 `example-` 前缀。
+ *   - `:root` 会被换写成本包的容器，写在里面的自定义属性因此只对本包生效。
+ */
+
+:root {
+  /* 一轮滚完要多久。写成变量便于在下面的媒体查询里改 */
+  --marquee-time: 18s;
+}
+
+.marquee {
+  /* 一行高的格子：内容垂直居中，且不许溢出到邻格 */
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.marquee .track {
+  display: flex;
+  /* 两份之间留一段空隙，否则首尾相接时读成一句 */
+  gap: var(--s6);
+  /* 不许收缩换行 —— 换行之后位移动画就与所见无关了 */
+  white-space: nowrap;
+  will-change: transform;
+  animation: example-marquee-roll var(--marquee-time) linear infinite;
+}
+
+.marquee .track span {
+  color: var(--muted);
+}
+
+/* 悬停时停下来，好让人读完 */
+.marquee:hover .track {
+  animation-play-state: paused;
+}
+
+/*
+ * 位移到 -50% 正好与起点重合：内容是同一句的两份（见 marquee.js）
+ *
+ * 用 transform 而非 `left`：前者不触发重排，后者每帧都要重新布局。
+ */
+@keyframes example-marquee-roll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* 窄格子里滚快一点，否则一句话要等很久才走完 */
+@media (width < 700px) {
+  :root {
+    --marquee-time: 11s;
+  }
+}
+
+/*
+ * 关掉动画的人不该看到滚动
+ *
+ * 与面板自身同一条口径。停在起点而不是继续滚 —— 那时看得到的是第一份，
+ * 第二份在格子外面，故内容仍然完整。
+ */
+@media (prefers-reduced-motion: reduce) {
+  .marquee .track {
+    animation: none;
+  }
+}
