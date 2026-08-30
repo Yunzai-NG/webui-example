@@ -1,6 +1,6 @@
 {
   "name": "webui-example",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Yunzai NG 面板插件示例：一言、日历、时钟与跑马灯四枚组件，一个页签，含 node 侧入口与自带样式表",
   "type": "module",
   "license": "AGPL-3.0-or-later",
