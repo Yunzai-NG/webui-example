@@ -7,12 +7,489 @@
  * 两条例外要记住：
  *   - `@keyframes` 原样保留，**动画名是全局的**，故此处加了 `example-` 前缀。
  *   - `:root` 会被换写成本包的容器，写在里面的自定义属性因此只对本包生效。
+ *
+ * **颜色一律取面板的令牌**（`var(--accent)` 一族），不写字面色值：写死的色值在另一套主题下
+ * 会看不见，而令牌的取值随主题走。间距同理取 `--s1`…`--s8`，圆角取 `--r-card` / `--r-ctl` /
+ * `--r-pill` 三档 —— 与面板自身同一套刻度，两者并排时才不会差半个像素。
  */
 
 :root {
   /* 一轮滚完要多久。写成变量便于在下面的媒体查询里改 */
   --marquee-time: 18s;
 }
+
+/* ─────────────── 一言 ─────────────── */
+
+/*
+ * 整块居中的引言排版
+ *
+ * 不用面板的 `.card`：那是个左对齐的通用容器，而这一枚要的是居中斜体加一枚大引号。
+ * 卡片的底色、描边与圆角照抄面板的令牌，故它与邻格看起来仍是同一套东西。
+ */
+.quote {
+  display: flex;
+  flex-direction: column;
+  padding: var(--s4) var(--s6) var(--s3);
+  height: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  /*
+   * 这一层自己不滚，滚动归 `.quote-main`
+   *
+   * 两枚按钮要恒在左下角。若让这一层滚，按钮无论是绝对定位还是留在流里都会随内容滚走 ——
+   * 长句子往下滚一段，按钮就滑出视野了。故这一层只作两段的容器：句子那段可伸缩并自己滚，
+   * 按钮那段固定在底。
+   */
+  overflow: hidden;
+}
+
+/*
+ * 句子那一段：吃掉除按钮之外的全部高度，并在其中居中
+ *
+ * `min-height: 0` 不可省 —— flex 项的默认最小高度是内容高度，缺了它这一项撑着不缩，
+ * 于是溢出的是整张卡片而非这一段，`overflow: auto` 也就无从生效（这一条与面板
+ * `.board .card.fill > :not(...)` 里那句同因）。
+ *
+ * 居中用 `safe center` 而非 `center`：装得下时两者等效，装不下时 `center` 把溢出对半分到
+ * 上下两侧，而居中的 flex 容器**上半截滚不回去** —— 长句子落在两行高的格子里时头一行
+ * 永远看不到。`safe center` 在溢出时自行退回 `flex-start`。
+ */
+.quote-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  min-height: 0;
+  overflow: auto;
+}
+
+/*
+ * 大引号
+ *
+ * 用 `”`（右引号）而非 `“`：参考图那一枚是两撇朝下的形状。压在句子上方居中，
+ * 半透明 —— 它是装饰，不该与句子争夺注意力。
+ */
+.quote-mark {
+  font-family: var(--font-ui);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 0.6;
+  color: var(--info);
+  opacity: 0.5;
+  /* 行高压到 0.6 之后字形几乎贴住句子，补一段间距 */
+  margin-bottom: var(--s3);
+}
+
+.quote-text {
+  margin: 0;
+  text-align: center;
+  font-style: italic;
+  font-size: var(--fs-h2);
+  font-weight: 600;
+  line-height: 1.7;
+  color: var(--text);
+  /* 句子两侧各留一对直立引号，与参考图一致 */
+  quotes: "\"" "\"";
+}
+
+.quote-text::before {
+  content: open-quote;
+  margin-right: var(--s1);
+}
+
+.quote-text::after {
+  content: close-quote;
+  margin-left: var(--s1);
+}
+
+/* 还没取到句子时那一行：不加引号，也不用斜体 —— 它不是引文 */
+.quote-waiting {
+  font-style: normal;
+  font-weight: 400;
+  font-size: var(--fs-body);
+  color: var(--muted);
+}
+
+.quote-waiting::before,
+.quote-waiting::after {
+  content: none;
+}
+
+/*
+ * 出处：一段短横线接来源
+ *
+ * 横线用伪元素画而不是写进文本：写进文本时读屏器会把「——」念出来，而它是排版记号。
+ */
+.quote-from {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin: var(--s3) 0 0;
+  font-size: var(--fs-hint);
+  font-weight: 600;
+  color: var(--info);
+}
+
+.quote-from::before {
+  content: "";
+  width: 22px;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: var(--r-pill);
+}
+
+/* 「已复制」与取数失败共用这一行，故只在颜色上分野 */
+.quote-note {
+  margin: var(--s2) 0 0;
+  font-size: var(--fs-hint);
+  color: var(--muted);
+}
+
+.quote-err {
+  color: var(--err);
+}
+
+/*
+ * 左下角那两枚图标按钮
+ *
+ * 留在流里、`flex: none`，故句子再长也压不到它们，也不随句子一起滚 —— 滚的是
+ * `.quote-main` 那一层。初版把它们绝对定位到卡片左下角，而 `.quote` 一旦成为滚动容器，
+ * 里头的绝对定位子元素就跟着内容滚：长句子往下滚半屏，按钮便滑出视野。
+ *
+ * 句子那一段拿 `flex: 1 1 auto` 吃掉余下的高度，故这两枚恒在底部，不因句子长短浮动。
+ */
+.quote-acts {
+  flex: none;
+  display: flex;
+  gap: var(--s1);
+  /* 与 `.quote-main` 之间留一段，免得按钮贴着最后一行字 */
+  margin-top: var(--s2);
+}
+
+.quote-act {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--r-ctl);
+  color: var(--muted);
+  cursor: pointer;
+  /* 只过渡颜色，与面板的口径一致：不过渡宽高 */
+  transition:
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+
+.quote-act svg {
+  width: 15px;
+  height: 15px;
+}
+
+.quote-act:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--raise);
+}
+
+/* 键盘焦点必须看得见 —— 这两枚按钮没有文字，焦点丢了就无从操作 */
+.quote-act:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  color: var(--text);
+}
+
+.quote-act:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ─────────────── 日历 ─────────────── */
+
+.cal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  height: 100%;
+  /* 内容比格子高时自己滚，不顶开栅格 */
+  overflow: auto;
+}
+
+.cal h3 {
+  margin: 0;
+}
+
+/*
+ * 上半：左侧一列事实，右侧月历
+ *
+ * 两列之间一道竖线，与参考图一致。窄格子里改为上下两段（见文末的容器查询）。
+ */
+.cal-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s4);
+  align-items: start;
+}
+
+.cal-facts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--s1);
+}
+
+.cal-week {
+  margin: 0;
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  color: var(--text);
+}
+
+/*
+ * 大日号
+ *
+ * 这一格里唯一的大字。行高压到 1 —— 默认行高会在数字上下各留一段空白，
+ * 使它与上下两行的间距看起来比实际大一倍。
+ */
+.cal-day {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--info);
+  /* 等宽数字：29 → 30 时整块不该跳一下 */
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-sub {
+  margin: 0;
+  font-size: var(--fs-hint);
+  color: var(--muted);
+}
+
+/* 干支三柱较长，窄格子里允许它自己折行 */
+.cal-ganzhi {
+  line-height: 1.5;
+}
+
+/*
+ * 月历网格
+ *
+ * 固定 7 列，行数由内容决定（组件恒给 6 行，见 calendar.js 的 CELLS）。
+ * 左侧一道分隔线代替参考图里的竖线。
+ */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding-left: var(--s4);
+  border-left: 1px solid var(--border);
+}
+
+.cal-head,
+.cal-cell {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  font-size: var(--fs-hint);
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-head {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cal-cell {
+  color: var(--text);
+  border-radius: var(--r-pill);
+}
+
+/* 邻月的日子：在场但不抢眼 —— 去掉它们，每月的行首行尾会缺一块，读不出是同一张月历 */
+.cal-other {
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+/*
+ * 今天：一枚实心圆底
+ *
+ * 压在 `--info` 上的字取 `--on-accent`（面板令牌里那支「压在强调色上的前景」），
+ * 不写 `#fff`：本文件不出现字面色值，理由见文件头。
+ */
+.cal-today {
+  background: var(--info);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+
+/* ─────────────── 三条剩余进度 ─────────────── */
+
+.cal-prog {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s3);
+}
+
+.cal-prog-num {
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  color: var(--info);
+  font-variant-numeric: tabular-nums;
+  /* 百分数宽度随位数变，给一个下限免得右侧的槽左右晃 */
+  min-width: 46px;
+}
+
+.cal-prog-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.cal-prog-label {
+  margin: 0;
+  font-size: var(--fs-hint);
+  color: var(--text);
+}
+
+.cal-prog-label b {
+  color: var(--info);
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-prog-slot {
+  height: 8px;
+  background: var(--raise);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+
+/*
+ * 进度填充
+ *
+ * 宽度由行内样式给出。**不给宽度加过渡** —— 与面板同一条口径：逐帧改宽度要重排，
+ * 而这三条一分钟才动一次，动画本身也没人看得到。
+ */
+.cal-prog-fill {
+  height: 100%;
+  background: var(--info);
+  border-radius: var(--r-pill);
+}
+
+/* ─────────────── 距离春节 ─────────────── */
+
+/*
+ * 一枚描边的方块，与上面三条进度区分开
+ *
+ * 底色不填：它已经用描边和居中大字与邻近内容分了野，再加一层底色会让这一格里出现
+ * 第三级表面（面板的层次只有底 → 面 → 面·浮起三级）。
+ */
+.cal-spring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+  padding: var(--s3);
+  border: 1px solid var(--info);
+  border-radius: var(--r-card);
+}
+
+.cal-spring-label {
+  margin: 0;
+  font-size: var(--fs-hint);
+  color: var(--info);
+}
+
+.cal-spring-num {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--info);
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-spring-date {
+  margin: 0;
+  font-size: var(--fs-hint);
+  color: var(--muted);
+}
+
+/*
+ * 窄格子：月历改为落在事实之下
+ *
+ * 用容器查询而非媒体查询 —— 这一格能有多窄取决于它在栅格里占几列，与窗口宽度无关。
+ * 使用者把它拖成 3 列宽时，窗口仍是 1600px。
+ */
+@container (width < 300px) {
+  .cal-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cal-grid {
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding-top: var(--s3);
+  }
+}
+
+/* ─────────────── 时钟 ─────────────── */
+
+/*
+ * 居中用 `safe center`，与面板及一言那一枚同一条口径
+ *
+ * 这一枚是 `.card`，故面板已给它 `overflow: auto`。而 `center` 会把溢出对半分到上下两侧，
+ * 居中的 flex 容器**上半截滚不回去** —— 使用者把它拖到只剩一行高时，时分那一行永远看不到。
+ * `safe center` 在溢出时自行退回 `flex-start`。
+ */
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  gap: var(--s1);
+  height: 100%;
+}
+
+/*
+ * 时分秒
+ *
+ * 等宽数字是硬要求：比例数字下，每一秒的字宽都不同，整块会左右抖。
+ * 基线对齐而非居中：秒那一节小一档，居中会让它悬在时分中间。
+ */
+.clock-time {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+/* 秒：小一档、淡一档 —— 它是用来确认「表在走」的，不是要读的数 */
+.clock-sec {
+  font-size: var(--fs-h2);
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
+.clock-date {
+  margin: 0;
+  font-size: var(--fs-hint);
+  color: var(--muted);
+}
+
+/* ─────────────── 跑马灯 ─────────────── */
 
 .marquee {
   /* 一行高的格子：内容垂直居中，且不许溢出到邻格 */

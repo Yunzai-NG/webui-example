@@ -1,5 +1,5 @@
 /**
- * 模块职责：面板插件示例包的入口 —— 把三枚组件与一个页签交给面板
+ * 模块职责：面板插件示例包的入口 —— 把四枚组件与一个页签交给面板
  * 依赖方向：只依赖同包内的几个文件；不 import 任何裸包名
  * 生命周期：被浏览器 `import()` 一次，导出的定义随即登记
  * 注意事项：**入口固定是包根的 `index.js`，且这是浏览器直接执行的文件。** 没有构建步骤，
@@ -13,6 +13,7 @@
  *
  *          **分成几个文件纯粹是为了好读**，面板只认这一个入口。写成一个文件同样成立。
  */
+import { calendarWidget } from "./widgets/calendar.js"
 import { clockWidget } from "./widgets/clock.js"
 import { hitokotoWidget } from "./widgets/hitokoto.js"
 import { marqueeWidget } from "./widgets/marquee.js"
@@ -21,13 +22,16 @@ import { hitokotoTab } from "./tabs/hitokoto-tab.js"
 /**
  * 本包提供的组件
  *
- * 一个模块一次给出多枚组件（见「一个包给出多枚组件」）。这也是本包想示范的第一件事：不必为了两枚
- * 组件做成两个包。
+ * 一个模块一次给出多枚组件（见「一个包给出多枚组件」）。这也是本包想示范的第一件事：不必为了几枚
+ * 组件做成几个包。
  *
- * 跑马灯那一枚用的是包自带的 `style.css`（由 `package.json` 的 `webuiPanel.style` 指出）——
+ * **日历与时钟是两枚，不是一枚。** 报时每秒重画，而日历那些一天才变一次；合成一枚等于让月历
+ * 网格每秒重算一遍。分开之后使用者也能只留其中一枚。
+ *
+ * 四枚组件都用到包自带的 `style.css`（由 `package.json` 的 `webuiPanel.style` 指出）——
  * 单文件面板插件没有这项能力，那是「做成包」的另一个理由。
  */
-export default [hitokotoWidget, clockWidget, marqueeWidget]
+export default [hitokotoWidget, calendarWidget, clockWidget, marqueeWidget]
 
 /** 本包提供的页签，落在插件页上 */
 export const tabs = [hitokotoTab]
