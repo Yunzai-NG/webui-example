@@ -2,6 +2,17 @@
 
 格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## 未发布
+
+### 变更
+
+- 收掉 `server/index.js` 与三枚组件文件头的重复论证，注释占比 35% → 33%。判据一条没删：
+  动画名必须自带前缀（`@keyframes` 名字是全局的，两个包都叫 `roll` 时后注入的会盖掉前一份）、
+  自建计时器要自己收、`daysLeft` 三条进度共用一个口径。代码一行未动。
+
+  本仓没有 `package.json` scripts 也没有 `node_modules`，跑不了 verify，故改完只以
+  `node --check` 逐个文件过了语法（7 个全通过）—— 那只保证语法成立，不等于跑过测试。
+
 ## 0.2.0 — 2026-08-30
 
 ### 新增
