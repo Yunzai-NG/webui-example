@@ -32,6 +32,8 @@ export const hitokotoTab = {
     const loading = api.ref(false)
     /** 失败原因 */
     const failed = api.ref("")
+    /** 给每句发一个序号当 key */
+    let seq = 0
 
     /** 再取一批 */
     const load = async () => {
@@ -41,7 +43,7 @@ export const hitokotoTab = {
         // 路径固定，不带查询串 —— 受限上下文的 handler 读不到查询串，见 `server/index.js`
         const got = await api.own("hitokoto/batch")
         // 新的在前：使用者点了「再取一批」，他要看的是刚取来的那些
-        list.value = [...got, ...list.value]
+        list.value = [...got.map(item => ({ ...item, id: ++seq })), ...list.value]
         failed.value = ""
       } catch (err) {
         failed.value = err instanceof Error ? err.message : String(err)
@@ -53,8 +55,13 @@ export const hitokotoTab = {
     void load()
 
     return () => {
-      const rows = list.value.map((item, i) =>
-        api.h("li", { key: `${i}:${item.text}` }, [
+      /*
+       * key 用取到时发的序号，不用下标
+       *
+       * 新的一批插在表头，下标作 key 时旧行的 key 全体后移，Vue 认作整张表都换了、逐行重建 DOM。
+       */
+      const rows = list.value.map(item =>
+        api.h("li", { key: item.id }, [
           api.h("span", {}, item.text),
           api.h(
             "span",

@@ -43,9 +43,21 @@ export const clockWidget = {
     /** 当前时刻；每秒换一个新的 Date */
     const now = api.ref(new Date())
 
-    const timer = setInterval(() => {
-      now.value = new Date()
-    }, 1000)
+    /*
+     * 每次都对齐到下一个整秒，而不是 `setInterval(…, 1000)`
+     *
+     * 后者从挂载那一刻起算，与真实的秒界差着一个随机的零头，还会越走越偏；后台标签页回来时
+     * 又常被浏览器推迟，于是秒数偶尔跳一格或同一秒停两拍。多等 5 毫秒是给计时器提前触发留的余量，
+     * 否则拿到的仍是上一秒。
+     */
+    let timer
+    const schedule = () => {
+      timer = setTimeout(() => {
+        now.value = new Date()
+        schedule()
+      }, 1005 - (Date.now() % 1000))
+    }
+    schedule()
 
     /*
      * 自带的计时器要自己收
@@ -54,7 +66,7 @@ export const clockWidget = {
      * 它仍每秒跑一次、仍在改一个没人看的 ref，直到整页刷新。
      */
     api.onUnmounted(() => {
-      clearInterval(timer)
+      clearTimeout(timer)
     })
 
     return () => {

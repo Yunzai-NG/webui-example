@@ -62,9 +62,9 @@ async function tryFetchOne(endpoint) {
   try {
     return await fetchOne(endpoint)
   } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err)
-    // 超时的原话是「The operation was aborted due to timeout」，对使用者没有意义
-    return { error: reason.includes("aborted due to timeout") ? "一言接口超时" : `取一言失败：${reason}` }
+    // `AbortSignal.timeout` 抛的是名为 TimeoutError 的 DOMException；按名字认，不按原话（各版本措辞不一）
+    if (err instanceof Error && err.name === "TimeoutError") return { error: "一言接口超时" }
+    return { error: `取一言失败：${err instanceof Error ? err.message : String(err)}` }
   }
 }
 
