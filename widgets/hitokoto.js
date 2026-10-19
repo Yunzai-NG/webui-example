@@ -24,7 +24,7 @@ export const hitokotoWidget = {
   id: "example.hitokoto",
   page: "overview",
   title: "一言",
-  defaultLayout: { w: 6, h: 2, minW: 3, minH: 2, resizable: true },
+  defaultLayout: { w: 8, h: 2, minW: 4, minH: 2, resizable: true },
 
   /**
    * @param api 面板注入的能力

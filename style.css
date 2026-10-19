@@ -90,6 +90,7 @@
   font-weight: 600;
   line-height: 1.7;
   color: var(--text);
+  overflow-wrap: anywhere;
   /* 句子两侧各留一对直立引号，与参考图一致 */
   quotes: "\"" "\"";
 }
@@ -127,6 +128,9 @@
   align-items: center;
   gap: var(--s2);
   margin: var(--s3) 0 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  overflow-wrap: anywhere;
   font-size: var(--fs-hint);
   font-weight: 600;
   color: var(--info);
@@ -171,8 +175,10 @@
 .quote-act {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  min-width: 36px;
+  min-height: 36px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   background: none;
   border: none;
@@ -339,7 +345,7 @@
 .cal-prog-num {
   font-size: var(--fs-h3);
   font-weight: 700;
-  color: var(--info);
+  color: var(--text);
   font-variant-numeric: tabular-nums;
   /* 百分数宽度随位数变，给一个下限免得右侧的槽左右晃 */
   min-width: 46px;
@@ -395,9 +401,9 @@
   flex-direction: column;
   align-items: center;
   gap: var(--s1);
-  padding: var(--s3);
-  border: 1px solid var(--info);
-  border-radius: var(--r-card);
+  padding: var(--s3) 0 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
 }
 
 .cal-spring-label {
@@ -493,6 +499,7 @@
 
 .marquee {
   /* 一行高的格子：内容垂直居中，且不许溢出到邻格 */
+  position: relative;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -500,6 +507,8 @@
 
 .marquee .track {
   display: flex;
+  flex: none;
+  width: max-content;
   /* 两份之间留一段空隙，否则首尾相接时读成一句 */
   gap: var(--s6);
   /* 不许收缩换行 —— 换行之后位移动画就与所见无关了 */
@@ -514,6 +523,10 @@
 
 /* 悬停时停下来，好让人读完 */
 .marquee:hover .track {
+  animation-play-state: paused;
+}
+
+.marquee:focus-within .track {
   animation-play-state: paused;
 }
 

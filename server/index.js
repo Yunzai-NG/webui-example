@@ -10,15 +10,12 @@
  *
  *          代取一言而非浏览器直连：CORS 不由我们决定，且接口地址在配置里，浏览器不必知道它。
  *
- *          路由不收参数（受限上下文的 handler 无参），故取一句与取一批是两条路径；日期由本侧取，
+ *          路由不收参数（受限上下文的 handler 无参），日期由本侧取，
  *          农历的「今天」该由跑着的机器说而非时区可能不同的浏览器。
  */
 
 /** 接口地址没配时用的默认值，与 package.json 里那一项的 default 须一致 */
 const DEFAULT_ENDPOINT = "https://v1.hitokoto.cn"
-
-/** 取一批时取几句 */
-const BATCH = 5
 
 /** 单次请求超时毫秒 */
 const TIMEOUT_MS = 8000
@@ -127,18 +124,6 @@ function setup(ctx) {
   }
 
   ctx.route("hitokoto", async () => tryFetchOne(endpoint()))
-
-  /*
-   * 取一批：并发发出，失败的那些丢掉
-   *
-   * 用 allSettled 而非 all：五句里有一句超时就整批失败，会让「再取一批」在网络不稳时
-   * 几乎总是空手而归，而四句已经够看了。全都失败时给空数组，页签那侧照旧显示上一批。
-   */
-  ctx.route("hitokoto/batch", async () => {
-    const at = endpoint()
-    const got = await Promise.allSettled(Array.from({ length: BATCH }, () => fetchOne(at)))
-    return got.filter(one => one.status === "fulfilled").map(one => one.value)
-  })
 
   ctx.route("lunar", async () => {
     try {

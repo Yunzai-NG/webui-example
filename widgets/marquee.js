@@ -19,7 +19,8 @@ export const marqueeWidget = {
   id: "example.marquee",
   page: "overview",
   title: "跑马灯",
-  defaultLayout: { w: 6, h: 1, minW: 3, minH: 1, resizable: true },
+  defaultLayout: { w: 8, h: 1, minW: 4, minH: 1, resizable: true },
+  defaultHidden: true,
 
   /**
    * @param api 面板注入的能力
@@ -45,7 +46,7 @@ export const marqueeWidget = {
     })()
 
     return () =>
-      api.h("div", { class: "card marquee" }, [
+      api.h("div", { class: "card marquee", role: "marquee", tabindex: 0, "aria-label": text.value }, [
         /*
          * 同一句重复两遍，是无缝循环的做法
          *

@@ -122,7 +122,7 @@ export const calendarWidget = {
   id: "example.calendar",
   page: "overview",
   title: "日历",
-  defaultLayout: { w: 4, h: 5, minW: 3, minH: 4, resizable: true },
+  defaultLayout: { w: 4, h: 4, minW: 3, minH: 1, resizable: true, fit: true },
 
   /**
    * @param api 面板注入的能力

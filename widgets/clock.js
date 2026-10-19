@@ -33,7 +33,9 @@ export const clockWidget = {
   id: "example.clock",
   page: "overview",
   title: "时钟",
-  defaultLayout: { w: 3, h: 2, minW: 2, minH: 2, resizable: true },
+  defaultLayout: { w: 4, h: 2, minW: 3, minH: 2, resizable: true },
+  // 默认右栏已有日历，再叠一枚时钟右栏就比左栏长出一截
+  defaultHidden: true,
 
   /**
    * @param api 面板注入的能力
