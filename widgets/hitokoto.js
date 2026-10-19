@@ -7,7 +7,7 @@
  *          取数走包自己的 node 侧（`api.own`）而非浏览器直连：CORS 头不由我们决定，
  *          且接口地址在配置里，由 node 侧读同一份配置发请求。
  *          **失败时保留上一句话**：把已显示的句子换成一行错误等于「点一下就丢了内容」，
- *          故错误另起一行小字。排版用本包的 `quote-*` 一族而非面板的 `.card`（那是左对齐的通用容器）。
+ *          故错误另起一行小字。
  */
 
 /** 「换一句」的图标：一段带箭头的回转，读作「再来一个」 */
@@ -19,12 +19,18 @@ const ICON_COPY = "M9 9h10v10H9zM5 15V5h10"
 /** 复制成功后那句提示留多久（毫秒） */
 const COPIED_MS = 1600
 
+/** 一对实心的弯引号，标题前的小号与右上角的底纹共用 */
+const QUOTE_GLYPH =
+  "M6 30c0-9 5-17 13-20l2 4c-5 2-8 6-8 10h7v14H6zM27 30c0-9 5-17 13-20l2 4c-5 2-8 6-8 10h7v14H27z"
+
 /** 一言组件 */
 export const hitokotoWidget = {
   id: "example.hitokoto",
   page: "overview",
   title: "一言",
-  defaultLayout: { w: 8, h: 2, minW: 4, minH: 2, resizable: true },
+  defaultLayout: { w: 8, h: 2, minW: 4, minH: 1, resizable: true, fit: true },
+  // 默认版面尽量少：概览只上时钟，一言与日历在「编辑组件」里添加
+  defaultHidden: true,
 
   /**
    * @param api 面板注入的能力
@@ -176,17 +182,30 @@ export const hitokotoWidget = {
           ? api.h("p", { class: "quote-text quote-waiting" }, loading.value ? "正在取第一句…" : "还没有取到句子")
           : api.h("p", { class: "quote-text" }, item.text)
 
-      return api.h("article", { class: "quote" }, [
+      return api.h("article", { class: "card quote" }, [
+        // 卡片右上角一枚放大的引号作底纹；纯装饰，绝对定位不计入高度
+        api.h(
+          "svg",
+          { class: "quote-deco", viewBox: "0 0 48 48", "aria-hidden": "true", focusable: "false" },
+          [api.h("path", { d: QUOTE_GLYPH })]
+        ),
+        api.h("header", { class: "quote-head" }, [
+          api.h(
+            "svg",
+            { class: "quote-mark", viewBox: "0 0 48 48", "aria-hidden": "true", focusable: "false" },
+            [api.h("path", { d: QUOTE_GLYPH })]
+          ),
+          api.h("h3", {}, "一言"),
+          api.h("div", { class: "quote-acts" }, [
+            iconButton(ICON_REFRESH, loading.value ? "取数中" : "换一句", () => void load(), loading.value),
+            iconButton(ICON_COPY, "复制这句", () => void copy(), item === undefined)
+          ])
+        ]),
         /*
-         * 句子那一段单独包一层，滚动落在它身上
-         *
-         * 不让 `.quote` 自己滚：两枚按钮要贴住卡片左下角，而一个滚动容器里的绝对定位子元素
-         * 是跟着内容滚的 —— 长句子往下滚，按钮就滑出视野了。包一层之后按钮留在流里、
-         * 恒在底部，句子在上半截自己滚。
+         * 句子与出处在流里排，卡片高度随句子长短由面板实测（`fit`），不在卡内滚动。
+         * 按钮在标题行右侧，故长句子也压不到它们。
          */
         api.h("div", { class: "quote-main" }, [
-          // 大引号是纯装饰，读屏器念不出「”」也不损失信息，故 aria-hidden
-          api.h("span", { class: "quote-mark", "aria-hidden": "true" }, "”"),
           body,
           source === "" ? null : api.h("p", { class: "quote-from" }, source),
           /*
@@ -200,10 +219,6 @@ export const hitokotoWidget = {
             : copied.value
               ? api.h("p", { class: "quote-note" }, "已复制")
               : null
-        ]),
-        api.h("div", { class: "quote-acts" }, [
-          iconButton(ICON_REFRESH, loading.value ? "取数中" : "换一句", () => void load(), loading.value),
-          iconButton(ICON_COPY, "复制这句", () => void copy(), item === undefined)
         ])
       ])
     }

@@ -21,6 +21,9 @@ const TICK_MS = 60_000
 /** 月历网格固定 6 行 7 列 —— 行数随月份变会让卡片高度每月一跳 */
 const CELLS = 42
 
+/** 剩余进度环的半径（viewBox 48） */
+const PROG_R = 20
+
 /**
  * 一天的零点
  * @param date 日期
@@ -123,6 +126,7 @@ export const calendarWidget = {
   page: "overview",
   title: "日历",
   defaultLayout: { w: 4, h: 4, minW: 3, minH: 1, resizable: true, fit: true },
+  defaultHidden: true,
 
   /**
    * @param api 面板注入的能力
@@ -167,29 +171,37 @@ export const calendarWidget = {
      * @param left 剩余天数
      * @returns vnode
      */
-    const progress = (ratio, label, left) =>
-      api.h("div", { class: "cal-prog" }, [
-        api.h("span", { class: "cal-prog-num" }, `${(ratio * 100).toFixed(1)}%`),
-        api.h("div", { class: "cal-prog-body" }, [
-          api.h("p", { class: "cal-prog-label" }, [
-            label,
-            api.h("b", {}, String(left)),
-            "天"
+    const progress = (ratio, label, left) => {
+      const length = 2 * Math.PI * PROG_R
+      return api.h(
+        "div",
+        {
+          class: "cal-prog",
+          role: "progressbar",
+          "aria-label": `${label}${left}天`,
+          "aria-valuemin": "0",
+          "aria-valuemax": "100",
+          "aria-valuenow": Math.round(ratio * 100)
+        },
+        [
+          api.h("div", { class: "cal-prog-ring" }, [
+            api.h("svg", { viewBox: "0 0 48 48", "aria-hidden": "true", focusable: "false" }, [
+              api.h("circle", { class: "cal-prog-track", cx: 24, cy: 24, r: PROG_R }),
+              api.h("circle", {
+                class: "cal-prog-fill",
+                cx: 24,
+                cy: 24,
+                r: PROG_R,
+                "stroke-dasharray": `${(length * ratio).toFixed(2)} ${length.toFixed(2)}`,
+                transform: "rotate(-90 24 24)"
+              })
+            ]),
+            api.h("span", { class: "cal-prog-num" }, `${Math.round(ratio * 100)}%`)
           ]),
-          api.h(
-            "div",
-            {
-              class: "cal-prog-slot",
-              role: "progressbar",
-              "aria-label": label,
-              "aria-valuemin": "0",
-              "aria-valuemax": "100",
-              "aria-valuenow": Math.round(ratio * 100)
-            },
-            [api.h("div", { class: "cal-prog-fill", style: { width: `${ratio * 100}%` } })]
-          )
-        ])
-      ])
+          api.h("p", { class: "cal-prog-label" }, [label, api.h("b", {}, String(left)), "天"])
+        ]
+      )
+    }
 
     return () => {
       const at = now.value
@@ -261,9 +273,11 @@ export const calendarWidget = {
           api.h("div", { class: "cal-facts" }, facts),
           grid
         ]),
-        progress(elapsedRatio(yearFrom, yearTo, at), "本年还剩", daysLeft(at, yearTo)),
-        progress(elapsedRatio(monthFrom, monthTo, at), "本月还剩", daysLeft(at, monthTo)),
-        progress(elapsedRatio(weekFrom, weekTo, at), "本周还剩", daysLeft(at, weekTo))
+        api.h("div", { class: "cal-progs" }, [
+          progress(elapsedRatio(yearFrom, yearTo, at), "本年还剩", daysLeft(at, yearTo)),
+          progress(elapsedRatio(monthFrom, monthTo, at), "本月还剩", daysLeft(at, monthTo)),
+          progress(elapsedRatio(weekFrom, weekTo, at), "本周还剩", daysLeft(at, weekTo))
+        ])
       ]
 
       /*
@@ -276,9 +290,18 @@ export const calendarWidget = {
         const left = daysBetween(at, new Date(sy, sm - 1, sd))
         body.push(
           api.h("div", { class: "cal-spring" }, [
-            api.h("p", { class: "cal-spring-label" }, "距离春节"),
-            api.h("b", { class: "cal-spring-num" }, left === 0 ? "今天" : String(left)),
-            api.h("p", { class: "cal-spring-date" }, info.spring)
+            api.h("svg", { class: "cal-lantern", viewBox: "0 0 32 40", "aria-hidden": "true", focusable: "false" }, [
+              api.h("path", { class: "cal-lantern-cord", d: "M16 0v6M16 34v6M13 40h6" }),
+              api.h("rect", { class: "cal-lantern-cap", x: 10, y: 5, width: 12, height: 3, rx: 1 }),
+              api.h("ellipse", { class: "cal-lantern-body", cx: 16, cy: 20, rx: 13, ry: 12 }),
+              api.h("path", { class: "cal-lantern-rib", d: "M16 8c-6 4-6 20 0 24M16 8c6 4 6 20 0 24" }),
+              api.h("rect", { class: "cal-lantern-cap", x: 10, y: 31, width: 12, height: 3, rx: 1 })
+            ]),
+            api.h("div", { class: "cal-spring-text" }, [
+              api.h("p", { class: "cal-spring-label" }, "距离春节"),
+              api.h("p", { class: "cal-spring-date" }, info.spring)
+            ]),
+            api.h("b", { class: "cal-spring-num" }, left === 0 ? "今天" : [String(left), api.h("small", {}, "天")])
           ])
         )
       }

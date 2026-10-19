@@ -11,140 +11,106 @@
  * **颜色一律取面板的令牌**（`var(--accent)` 一族），不写字面色值：写死的色值在另一套主题下
  * 会看不见，而令牌的取值随主题走。间距同理取 `--s1`…`--s8`，圆角取 `--r-card` / `--r-ctl` /
  * `--r-pill` 三档 —— 与面板自身同一套刻度，两者并排时才不会差半个像素。
+ *
+ * **强调色取 `--accent` / `--accent-solid`，不取 `--info`。** 后者是「提示」语义的固定蓝，
+ * 不随外观页的强调色变；本包的主色要跟着使用者选的颜色走。
+ *
+ * 四枚组件都是 `fit`（高度由面板按内容实测），故这里不写 `height: 100%` 加卡内滚动 ——
+ * 卡片根是普通的块，子元素各占自己的高度，面板才量得准。
  */
 
-:root {
-  /* 一轮滚完要多久。写成变量便于在下面的媒体查询里改 */
-  --marquee-time: 18s;
+/* ─────────────── 共用：卡片标题行 ─────────────── */
+
+.quote-head,
+.clk-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+}
+
+.quote-head h3,
+.clk-head h3,
+.cal h3 {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: var(--fs-h2);
 }
 
 /* ─────────────── 一言 ─────────────── */
 
-/*
- * 整块居中的引言排版
- *
- * 不用面板的 `.card`：那是个左对齐的通用容器，而这一枚要的是居中斜体加一枚大引号。
- * 卡片的底色、描边与圆角照抄面板的令牌，故它与邻格看起来仍是同一套东西。
- */
 .quote {
-  display: flex;
-  flex-direction: column;
-  padding: var(--s4) var(--s6) var(--s3);
-  height: 100%;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--r-card);
-  /*
-   * 这一层自己不滚，滚动归 `.quote-main`
-   *
-   * 两枚按钮要恒在左下角。若让这一层滚，按钮无论是绝对定位还是留在流里都会随内容滚走 ——
-   * 长句子往下滚一段，按钮就滑出视野了。故这一层只作两段的容器：句子那段可伸缩并自己滚，
-   * 按钮那段固定在底。
-   */
-  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 90% at 100% 100%, var(--accent-glow), transparent 60%),
+    var(--panel);
 }
 
-/*
- * 句子那一段：吃掉除按钮之外的全部高度，并在其中居中
- *
- * `min-height: 0` 不可省 —— flex 项的默认最小高度是内容高度，缺了它这一项撑着不缩，
- * 于是溢出的是整张卡片而非这一段，`overflow: auto` 也就无从生效（这一条与面板
- * `.board .card.fill > :not(...)` 里那句同因）。
- *
- * 居中用 `safe center` 而非 `center`：装得下时两者等效，装不下时 `center` 把溢出对半分到
- * 上下两侧，而居中的 flex 容器**上半截滚不回去** —— 长句子落在两行高的格子里时头一行
- * 永远看不到。`safe center` 在溢出时自行退回 `flex-start`。
- */
-.quote-main {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  align-items: center;
-  justify-content: safe center;
-  min-height: 0;
-  overflow: auto;
+/* 右上角的大引号底纹：绝对定位，不计入实测高度 */
+.quote-deco {
+  position: absolute;
+  right: var(--s3);
+  bottom: var(--s1);
+  transform: rotate(180deg);
+  z-index: -1;
+  width: 76px;
+  height: 76px;
+  fill: var(--accent);
+  opacity: 0.1;
+  pointer-events: none;
 }
 
-/*
- * 大引号
- *
- * 用 `”`（右引号）而非 `“`：参考图那一枚是两撇朝下的形状。压在句子上方居中，
- * 半透明 —— 它是装饰，不该与句子争夺注意力。
- */
 .quote-mark {
-  font-family: var(--font-ui);
-  font-size: 34px;
-  font-weight: 700;
-  line-height: 0.6;
-  color: var(--info);
-  opacity: 0.5;
-  /* 行高压到 0.6 之后字形几乎贴住句子，补一段间距 */
-  margin-bottom: var(--s3);
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: var(--accent);
+}
+
+.quote-main {
+  padding: 0 var(--s2) var(--s1);
+  text-align: center;
 }
 
 .quote-text {
   margin: 0;
-  text-align: center;
-  font-style: italic;
   font-size: var(--fs-h2);
   font-weight: 600;
-  line-height: 1.7;
+  line-height: 1.75;
   color: var(--text);
   overflow-wrap: anywhere;
-  /* 句子两侧各留一对直立引号，与参考图一致 */
-  quotes: "\"" "\"";
+  text-wrap: balance;
 }
 
-.quote-text::before {
-  content: open-quote;
-  margin-right: var(--s1);
-}
-
-.quote-text::after {
-  content: close-quote;
-  margin-left: var(--s1);
-}
-
-/* 还没取到句子时那一行：不加引号，也不用斜体 —— 它不是引文 */
 .quote-waiting {
-  font-style: normal;
   font-weight: 400;
   font-size: var(--fs-body);
   color: var(--muted);
 }
 
-.quote-waiting::before,
-.quote-waiting::after {
-  content: none;
-}
-
-/*
- * 出处：一段短横线接来源
- *
- * 横线用伪元素画而不是写进文本：写进文本时读屏器会把「——」念出来，而它是排版记号。
- */
+/* 出处：前面一段短横线，横线用伪元素画，读屏器不念 */
 .quote-from {
   display: flex;
   align-items: center;
-  gap: var(--s2);
-  margin: var(--s3) 0 0;
-  flex-wrap: wrap;
   justify-content: center;
-  overflow-wrap: anywhere;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin: var(--s2) 0 0;
   font-size: var(--fs-hint);
   font-weight: 600;
-  color: var(--info);
+  color: var(--accent);
+  overflow-wrap: anywhere;
 }
 
 .quote-from::before {
   content: "";
   width: 22px;
-  height: 1.5px;
+  height: 2px;
   background: currentColor;
   border-radius: var(--r-pill);
 }
 
-/* 「已复制」与取数失败共用这一行，故只在颜色上分野 */
 .quote-note {
   margin: var(--s2) 0 0;
   font-size: var(--fs-hint);
@@ -155,40 +121,27 @@
   color: var(--err);
 }
 
-/*
- * 左下角那两枚图标按钮
- *
- * 留在流里、`flex: none`，故句子再长也压不到它们，也不随句子一起滚 —— 滚的是
- * `.quote-main` 那一层。初版把它们绝对定位到卡片左下角，而 `.quote` 一旦成为滚动容器，
- * 里头的绝对定位子元素就跟着内容滚：长句子往下滚半屏，按钮便滑出视野。
- *
- * 句子那一段拿 `flex: 1 1 auto` 吃掉余下的高度，故这两枚恒在底部，不因句子长短浮动。
- */
 .quote-acts {
-  flex: none;
   display: flex;
+  flex: none;
   gap: var(--s1);
-  /* 与 `.quote-main` 之间留一段，免得按钮贴着最后一行字 */
-  margin-top: var(--s2);
 }
 
 .quote-act {
   display: grid;
   place-items: center;
-  min-width: 36px;
-  min-height: 36px;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   background: none;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--r-ctl);
   color: var(--muted);
   cursor: pointer;
-  /* 只过渡颜色，与面板的口径一致：不过渡宽高 */
   transition:
     color var(--dur-1) var(--ease),
-    background-color var(--dur-1) var(--ease);
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
 }
 
 .quote-act svg {
@@ -197,15 +150,13 @@
 }
 
 .quote-act:hover:not(:disabled) {
-  color: var(--text);
-  background: var(--raise);
+  color: var(--accent);
+  background: var(--accent-glow);
 }
 
-/* 键盘焦点必须看得见 —— 这两枚按钮没有文字，焦点丢了就无从操作 */
 .quote-act:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
-  color: var(--text);
 }
 
 .quote-act:disabled {
@@ -215,59 +166,43 @@
 
 /* ─────────────── 日历 ─────────────── */
 
-.cal {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s3);
-  height: 100%;
-  /* 内容比格子高时自己滚，不顶开栅格 */
-  overflow: auto;
-}
-
 .cal h3 {
-  margin: 0;
+  margin-bottom: var(--s3);
 }
 
-/*
- * 上半：左侧一列事实，右侧月历
- *
- * 两列之间一道竖线，与参考图一致。窄格子里改为上下两段（见文末的容器查询）。
- */
+/* 上半：左侧一列事实，右侧月历；窄格子里改为上下两段（见文末的容器查询） */
 .cal-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--s4);
-  align-items: start;
+  align-items: center;
 }
 
 .cal-facts {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
   gap: var(--s1);
+  text-align: center;
 }
 
 .cal-week {
   margin: 0;
-  font-size: var(--fs-h3);
+  font-size: var(--fs-hint);
   font-weight: 700;
-  color: var(--text);
+  color: var(--muted);
 }
 
-/*
- * 大日号
- *
- * 这一格里唯一的大字。行高压到 1 —— 默认行高会在数字上下各留一段空白，
- * 使它与上下两行的间距看起来比实际大一倍。
- */
+/* 大日号：卡内唯一的大字，渐变取强调色，随主题变 */
 .cal-day {
-  font-size: 44px;
-  font-weight: 700;
+  font-size: 46px;
+  font-weight: 800;
   line-height: 1;
-  color: var(--info);
-  /* 等宽数字：29 → 30 时整块不该跳一下 */
   font-variant-numeric: tabular-nums;
+  background: linear-gradient(160deg, var(--accent), var(--accent-solid));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .cal-sub {
@@ -276,20 +211,13 @@
   color: var(--muted);
 }
 
-/* 干支三柱较长，窄格子里允许它自己折行 */
 .cal-ganzhi {
   line-height: 1.5;
 }
 
-/*
- * 月历网格
- *
- * 固定 7 列，行数由内容决定（组件恒给 6 行，见 calendar.js 的 CELLS）。
- * 左侧一道分隔线代替参考图里的竖线。
- */
 .cal-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(22px, 1fr));
   gap: 2px;
   padding-left: var(--s4);
   border-left: 1px solid var(--border);
@@ -299,15 +227,14 @@
 .cal-cell {
   display: grid;
   place-items: center;
-  min-width: 22px;
   height: 22px;
-  font-size: var(--fs-hint);
+  font-size: var(--fs-label);
   font-variant-numeric: tabular-nums;
 }
 
 .cal-head {
   font-weight: 700;
-  color: var(--text);
+  color: var(--muted);
 }
 
 .cal-cell {
@@ -315,250 +242,384 @@
   border-radius: var(--r-pill);
 }
 
-/* 邻月的日子：在场但不抢眼 —— 去掉它们，每月的行首行尾会缺一块，读不出是同一张月历 */
 .cal-other {
   color: var(--muted);
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
-/*
- * 今天：一枚实心圆底
- *
- * 压在 `--info` 上的字取 `--on-accent`（面板令牌里那支「压在强调色上的前景」），
- * 不写 `#fff`：本文件不出现字面色值，理由见文件头。
- */
 .cal-today {
-  background: var(--info);
+  background: var(--accent-solid);
   color: var(--on-accent);
   font-weight: 700;
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-/* ─────────────── 三条剩余进度 ─────────────── */
+/* 三枚剩余进度环并排 */
+.cal-progs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s2);
+  margin-top: var(--s4);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--border);
+}
 
 .cal-prog {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--s3);
-}
-
-.cal-prog-num {
-  font-size: var(--fs-h3);
-  font-weight: 700;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  /* 百分数宽度随位数变，给一个下限免得右侧的槽左右晃 */
-  min-width: 46px;
-}
-
-.cal-prog-body {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--s1);
   min-width: 0;
 }
 
-.cal-prog-label {
-  margin: 0;
-  font-size: var(--fs-hint);
-  color: var(--text);
+.cal-prog-ring {
+  position: relative;
+  width: 56px;
+  height: 56px;
 }
 
-.cal-prog-label b {
-  color: var(--info);
+.cal-prog-ring svg {
+  width: 100%;
+  height: 100%;
+}
+
+.cal-prog-track,
+.cal-prog-fill {
+  fill: none;
+  stroke-width: 5;
+}
+
+.cal-prog-track {
+  stroke: var(--raise);
+}
+
+.cal-prog-fill {
+  stroke: var(--accent);
+  stroke-linecap: round;
+}
+
+.cal-prog-num {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-label);
+  font-weight: 700;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
 }
 
-.cal-prog-slot {
-  height: 8px;
-  background: var(--raise);
-  border-radius: var(--r-pill);
-  overflow: hidden;
+.cal-prog-label {
+  margin: 0;
+  font-size: var(--fs-label);
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
 }
 
-/*
- * 进度填充
- *
- * 宽度由行内样式给出。**不给宽度加过渡** —— 与面板同一条口径：逐帧改宽度要重排，
- * 而这三条一分钟才动一次，动画本身也没人看得到。
- */
-.cal-prog-fill {
-  height: 100%;
-  background: var(--info);
-  border-radius: var(--r-pill);
+.cal-prog-label b {
+  margin: 0 1px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
 }
 
-/* ─────────────── 距离春节 ─────────────── */
-
-/*
- * 一枚描边的方块，与上面三条进度区分开
- *
- * 底色不填：它已经用描边和居中大字与邻近内容分了野，再加一层底色会让这一格里出现
- * 第三级表面（面板的层次只有底 → 面 → 面·浮起三级）。
- */
+/* 距离春节：一枚灯笼、一段说明、右侧一个大数 */
 .cal-spring {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--s1);
-  padding: var(--s3) 0 0;
-  border-top: 1px solid var(--border);
-  border-radius: 0;
+  gap: var(--s3);
+  margin-top: var(--s3);
+  padding: var(--s2) var(--s3);
+  border-radius: var(--r-ctl);
+  background: var(--accent-glow);
+}
+
+.cal-lantern {
+  flex: none;
+  width: 24px;
+  height: 30px;
+}
+
+.cal-lantern-body {
+  fill: var(--accent);
+}
+
+.cal-lantern-rib {
+  fill: none;
+  stroke: var(--on-accent);
+  stroke-width: 1.2;
+  opacity: 0.55;
+}
+
+.cal-lantern-cap {
+  fill: var(--accent-solid);
+}
+
+.cal-lantern-cord {
+  fill: none;
+  stroke: var(--accent-solid);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.cal-spring-text {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .cal-spring-label {
   margin: 0;
   font-size: var(--fs-hint);
-  color: var(--info);
-}
-
-.cal-spring-num {
-  font-size: 32px;
   font-weight: 700;
-  line-height: 1.1;
-  color: var(--info);
-  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 .cal-spring-date {
   margin: 0;
-  font-size: var(--fs-hint);
+  font-size: var(--fs-label);
   color: var(--muted);
 }
 
-/*
- * 窄格子：月历改为落在事实之下
- *
- * 用容器查询而非媒体查询 —— 这一格能有多窄取决于它在栅格里占几列，与窗口宽度无关。
- * 使用者把它拖成 3 列宽时，窗口仍是 1600px。
- */
-@container (width < 300px) {
+.cal-spring-num {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-spring-num small {
+  margin-left: 2px;
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+
+/* 窄格子：月历落在事实之下。容器查询，宽窄取决于这一格占几列而非窗口 */
+@container (width < 320px) {
   .cal-top {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .cal-grid {
-    padding-left: 0;
+    padding: var(--s3) 0 0;
     border-left: none;
     border-top: 1px solid var(--border);
-    padding-top: var(--s3);
   }
 }
 
 /* ─────────────── 时钟 ─────────────── */
 
-/*
- * 居中用 `safe center`，与面板及一言那一枚同一条口径
- *
- * 这一枚是 `.card`，故面板已给它 `overflow: auto`。而 `center` 会把溢出对半分到上下两侧，
- * 居中的 flex 容器**上半截滚不回去** —— 使用者把它拖到只剩一行高时，时分那一行永远看不到。
- * `safe center` 在溢出时自行退回 `flex-start`。
- */
-.clock {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: safe center;
-  gap: var(--s1);
-  height: 100%;
+/* 右上角三段式切换 */
+.clk-switch {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border-radius: var(--r-pill);
+  background: var(--raise);
 }
 
-/*
- * 时分秒
- *
- * 等宽数字是硬要求：比例数字下，每一秒的字宽都不同，整块会左右抖。
- * 基线对齐而非居中：秒那一节小一档，居中会让它悬在时分中间。
- */
-.clock-time {
-  display: flex;
-  align-items: baseline;
-  gap: var(--s1);
-  font-size: 34px;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.5px;
-}
-
-/* 秒：小一档、淡一档 —— 它是用来确认「表在走」的，不是要读的数 */
-.clock-sec {
-  font-size: var(--fs-h2);
-  font-weight: 600;
+.clk-opt {
+  min-height: 26px;
+  padding: 0 var(--s2);
+  border: none;
+  border-radius: var(--r-pill);
+  background: none;
   color: var(--muted);
-  letter-spacing: 0;
+  font: inherit;
+  font-size: var(--fs-label);
+  cursor: pointer;
+  transition:
+    color var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
 }
 
-.clock-date {
-  margin: 0;
+.clk-opt:hover {
+  color: var(--text);
+}
+
+.clk-opt.on {
+  background: var(--panel);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+.clk-opt:focus-visible,
+.clk-dial:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 表盘本身是一枚按钮：点一下换到下一种 */
+.clk-dial {
+  display: block;
+  width: min(100%, 158px);
+  margin: 0 auto;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.clk-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.clk-face {
+  fill: var(--raise);
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.clk-tick {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.clk-tick-major {
+  stroke: var(--muted);
+  stroke-width: 2;
+}
+
+.clk-num {
+  fill: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.clk-hand {
+  stroke-linecap: round;
+}
+
+.clk-hour {
+  stroke: var(--text);
+  stroke-width: 4;
+}
+
+.clk-min {
+  stroke: var(--text);
+  stroke-width: 2.6;
+}
+
+.clk-sec {
+  stroke: var(--accent-solid);
+  stroke-width: 1.4;
+}
+
+.clk-pin {
+  fill: var(--accent-solid);
+  stroke: var(--panel);
+  stroke-width: 1.5;
+}
+
+.clk-track {
+  fill: none;
+  stroke: var(--raise);
+  stroke-width: 7;
+}
+
+.clk-arc {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+/* 三圈同一色相、深浅递进；秒圈最亮，是会动的那一圈 */
+.clk-arc-0 {
+  stroke: color-mix(in srgb, var(--accent-solid) 55%, var(--border));
+}
+
+.clk-arc-1 {
+  stroke: color-mix(in srgb, var(--accent-solid) 80%, var(--border));
+}
+
+.clk-arc-2,
+.clk-arc-sec {
+  stroke: var(--accent);
+}
+
+.clk-big,
+.clk-mid,
+.clk-small {
+  font-family: var(--font-ui);
+  text-anchor: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.clk-big {
+  fill: var(--text);
+  font-size: 27px;
+  font-weight: 800;
+}
+
+.clk-mid {
+  fill: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.clk-small {
+  fill: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.clk-date {
+  margin: var(--s3) 0 0;
+  text-align: center;
   font-size: var(--fs-hint);
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ─────────────── 跑马灯 ─────────────── */
 
 .marquee {
-  /* 一行高的格子：内容垂直居中，且不许溢出到邻格 */
-  position: relative;
   display: flex;
   align-items: center;
+  padding-block: 0;
   overflow: hidden;
 }
 
-.marquee .track {
+.marquee:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* 两端虚化：遮罩只取透明度，`#000` 在这里不是颜色，故不违背「不写字面色值」 */
+.mq-view {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+}
+
+.mq-track {
   display: flex;
-  flex: none;
   width: max-content;
-  /* 两份之间留一段空隙，否则首尾相接时读成一句 */
-  gap: var(--s6);
-  /* 不许收缩换行 —— 换行之后位移动画就与所见无关了 */
-  white-space: nowrap;
   will-change: transform;
-  animation: example-marquee-roll var(--marquee-time) linear infinite;
 }
 
-.marquee .track span {
-  color: var(--muted);
+.mq-copy {
+  display: inline-flex;
+  align-items: center;
+  white-space: pre;
 }
 
-/* 悬停时停下来，好让人读完 */
-.marquee:hover .track {
-  animation-play-state: paused;
-}
-
-.marquee:focus-within .track {
-  animation-play-state: paused;
-}
-
-/*
- * 位移到 -50% 正好与起点重合：内容是同一句的两份（见 marquee.js）
- *
- * 用 transform 而非 `left`：前者不触发重排，后者每帧都要重新布局。
- */
-@keyframes example-marquee-roll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-/* 窄格子里滚快一点，否则一句话要等很久才走完 */
-@media (width < 700px) {
-  :root {
-    --marquee-time: 11s;
-  }
-}
-
-/*
- * 关掉动画的人不该看到滚动
- *
- * 与面板自身同一条口径。停在起点而不是继续滚 —— 那时看得到的是第一份，
- * 第二份在格子外面，故内容仍然完整。
- */
-@media (prefers-reduced-motion: reduce) {
-  .marquee .track {
-    animation: none;
-  }
+/* 逐字缩放的落点：以字的竖向中线为轴，基线不跳 */
+.mq-ch {
+  display: inline-block;
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  color: var(--accent);
+  transform-origin: 50% 55%;
 }
