@@ -1,0 +1,38 @@
+/*
+ * 薄荷（示例主题）
+ *
+ * 用来照抄的一款最小主题：换一套令牌、给开关滑块换上两张表情、给卡片套一张九宫格边框、
+ * 换一张空状态插图、换掉两枚导航图标（后两样写在 package.json 的 webuiTheme 里，不在这里）。
+ *
+ * 只写与经典不同的地方。整份文件由面板包进 `@layer theme`，故不必担心特异度 ——
+ * 这里写 `:root { --accent: … }` 就盖得过面板的默认值。
+ *
+ * 只给了浅色一套（`schemes: ["light"]`）：外观页的明暗开关在这款主题下会置灰，并说明原因。
+ */
+
+:root {
+  --bg: #f2faf6;
+  --panel: #ffffff;
+  --raise: #ebf6f0;
+  --border: #cfe8db;
+  --border-strong: #9fd3b8;
+  --text: #1d3a2d;
+  --muted: #5f7f70;
+
+  --accent: #1a8a5e;
+  --accent-solid: #1f9d6b;
+  --on-accent: #ffffff;
+  --accent-glow: rgb(31 157 107 / 18%);
+  --accent-2: #2b9ad6;
+
+  --bg-gradient-1: rgb(127 209 166 / 30%);
+  --bg-gradient-2: rgb(159 211 184 / 22%);
+  --bg-gradient-3: rgb(242 250 246 / 0%);
+
+  --r-card: 18px;
+}
+
+/* 边框图占了 20px 的边宽，内边距相应收一点，免得卡片比经典里胖一圈 */
+:root[data-slots~="frame.card"] .card {
+  padding: calc(var(--s5) - 4px);
+}

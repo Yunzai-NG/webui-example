@@ -1,5 +1,5 @@
 /**
- * 模块职责：面板插件示例包的入口 —— 把四枚组件交给面板
+ * 模块职责：面板插件示例包的入口 —— 把五枚组件交给面板（主题在 package.json 的 webuiTheme 里，不经这里）
  * 依赖方向：只依赖同包内的几个文件；不 import 任何裸包名
  * 生命周期：被浏览器 `import()` 一次，导出的定义随即登记
  * 注意事项：**入口固定是包根的 `index.js`，且这是浏览器直接执行的文件。** 没有构建步骤，
@@ -13,6 +13,7 @@ import { calendarWidget } from "./widgets/calendar.js"
 import { clockWidget } from "./widgets/clock.js"
 import { hitokotoWidget } from "./widgets/hitokoto.js"
 import { marqueeWidget } from "./widgets/marquee.js"
+import { themedWidget } from "./widgets/themed.js"
 
 /**
  * 本包提供的组件
@@ -26,4 +27,4 @@ import { marqueeWidget } from "./widgets/marquee.js"
  * 四枚组件都用到包自带的 `style.css`（由 `package.json` 的 `webuiPanel.style` 指出）——
  * 单文件面板插件没有这项能力，那是「做成包」的另一个理由。
  */
-export default [hitokotoWidget, calendarWidget, clockWidget, marqueeWidget]
+export default [hitokotoWidget, calendarWidget, clockWidget, marqueeWidget, themedWidget]

@@ -1,7 +1,7 @@
 {
   "name": "webui-example",
-  "version": "0.3.0",
-  "description": "Yunzai NG 面板插件示例：一言、日历、时钟与跑马灯四枚组件，含 node 侧入口与自带样式表",
+  "version": "0.4.0",
+  "description": "Yunzai NG 面板插件示例：一言、日历、时钟、跑马灯与「跟着主题走」五枚组件，外加一款示例主题「薄荷」；含 node 侧入口与自带样式表",
   "type": "module",
   "license": "AGPL-3.0-or-later",
   "author": "Yunzai-NG",
@@ -26,6 +26,40 @@
         }
       }
     }
+  },
+  "webuiTheme": {
+    "id": "example-mint",
+    "name": "薄荷（示例）",
+    "description": "照抄用的最小主题：一套令牌、开关表情包滑块、九宫格卡片边框、空状态插图与两枚导航图标。只有浅色。",
+    "license": "AGPL-3.0-or-later",
+    "schemes": [
+      "light"
+    ],
+    "style": "theme/theme.css",
+    "preview": "theme/preview.svg",
+    "icons": {
+      "mode": "stroke",
+      "nav": {
+        "overview": "M12 21c0-8 4-14 9-16-1 7-4 13-9 16zM12 21c0-6-3-10-8-12 0 6 3 10 8 12",
+        "appearance": "M12 3c4 4 6 7 6 10a6 6 0 0 1-12 0c0-3 2-6 6-10z"
+      }
+    },
+    "slots": {
+      "switch.thumb.on": "theme/art/switch-on.svg",
+      "switch.thumb.off": "theme/art/switch-off.svg",
+      "frame.card": {
+        "image": "theme/art/frame.svg",
+        "slice": 24,
+        "width": "20px"
+      },
+      "empty": "theme/art/empty.svg"
+    },
+    "options": {
+      "accentHue": false,
+      "radius": true,
+      "backdrop": true
+    },
+    "backdrop": "gradient"
   },
   "dependencies": {
     "lunar-typescript": "1.8.6"
